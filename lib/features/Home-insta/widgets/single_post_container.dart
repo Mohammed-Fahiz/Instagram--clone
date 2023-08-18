@@ -5,12 +5,12 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:task1_app/core/constants/Color/pallete.dart';
 
 import 'package:intl/intl.dart';
+import 'package:task1_app/features/Home-insta/repositories/home_repository.dart';
 
 import '../../../Models/mediaModel.dart';
 import '../../../Models/userModel.dart';
 import '../../../core/constants/Firebase/firebase_constants.dart';
 import '../../../core/constants/global-variables/global-variables.dart';
-import '../../auth/controller/auth_controller.dart';
 import '../../post/screens/postCommentPage.dart';
 
 class SinglePostContainer extends StatefulWidget {
@@ -25,10 +25,13 @@ class _SinglePostContainerState extends State<SinglePostContainer> {
   bool isLiked = false;
   bool isSaved = false;
   int commentLength = 0;
+  MediaModel? post;
+
+  //TODO:if mounted setstate
+
   getCommentLength() async {
-    var query = widget.post.postRef!
-        .collection(FirebaseConstants.commentCollections)
-        .count();
+    var query =
+        post!.postRef!.collection(FirebaseConstants.commentCollections).count();
     var queryLength = await query.query.count().get();
     commentLength = queryLength.count;
     if (mounted) {
@@ -38,16 +41,15 @@ class _SinglePostContainerState extends State<SinglePostContainer> {
 
   likeFunction() async {
     setState(() {
-      widget.post.likesList!.contains(currentUserId)
-          ? widget.post.likesList!.remove(currentUserId)
-          : widget.post.likesList!.add(currentUserId);
-      widget.post.likesList!.contains(currentUserId)
+      post!.likesList!.contains(currentUserId)
+          ? post!.likesList!.remove(currentUserId)
+          : post!.likesList!.add(currentUserId);
+      post!.likesList!.contains(currentUserId)
           ? isLiked = true
           : isLiked = false;
     });
 
-    var likeData = widget.post.copyWith(likesList: widget.post.likesList);
-    widget.post.postRef!.update(likeData.toJson());
+    HomeRepository.updateLikeToFirebase(post!);
   }
 
   postSave() {
@@ -59,11 +61,10 @@ class _SinglePostContainerState extends State<SinglePostContainer> {
           ? isSaved = true
           : isSaved = false;
     });
-
-    var updateSaved = usersModel!.copyWith(saved: usersModel!.saved);
-    usersModel!.ref!.update(updateSaved.toJson());
+    HomeRepository.updateSavedToFirebase(usersModel!);
   }
 
+  //TODO: mvc update
   postedTime(postedTime) {
     DateTime now = DateTime.now();
     Duration difference = now.difference(postedTime);
@@ -80,18 +81,23 @@ class _SinglePostContainerState extends State<SinglePostContainer> {
     }
   }
 
-  @override
-  void initState() {
-    getCommentLength();
+  checkIsLikedSaved() {
     setState(() {
-      widget.post.likesList!.contains(currentUserId)
+      post!.likesList!.contains(currentUserId)
           ? isLiked = true
           : isLiked = false;
-      usersModel!.saved.contains(widget.post.postId)
+      usersModel!.saved.contains(post!.postId)
           ? isSaved = true
           : isSaved = false;
     });
-    // TODO: implement initState
+  }
+
+  @override
+  void initState() {
+    post = widget.post;
+    getCommentLength();
+    checkIsLikedSaved();
+
     super.initState();
   }
 
@@ -121,7 +127,7 @@ class _SinglePostContainerState extends State<SinglePostContainer> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        widget.post.userName.toString(),
+                        post!.userName.toString(),
                         style: const TextStyle(fontSize: 16),
                       ),
                       const Text("Kerala,India"),
@@ -144,7 +150,7 @@ class _SinglePostContainerState extends State<SinglePostContainer> {
             height: deviceWidth,
             width: deviceWidth,
             child: CachedNetworkImage(
-              imageUrl: widget.post.postUrl.toString(),
+              imageUrl: post!.postUrl.toString(),
               fit: BoxFit.cover,
               errorWidget: (context, url, error) => const Center(
                 child: CircularProgressIndicator(),
@@ -184,7 +190,7 @@ class _SinglePostContainerState extends State<SinglePostContainer> {
                             context: context,
                             builder: (context) {
                               return CommentPage(
-                                post: widget.post,
+                                post: post!,
                               );
                             },
                           );
@@ -219,7 +225,7 @@ class _SinglePostContainerState extends State<SinglePostContainer> {
                     width: 5,
                   ),
                   Text(
-                    "${widget.post.likesList!.length} likes",
+                    "${post!.likesList!.length} likes",
                   ),
                 ],
               ),
@@ -228,7 +234,7 @@ class _SinglePostContainerState extends State<SinglePostContainer> {
                   const SizedBox(
                     width: 5,
                   ),
-                  Text("Posted ${postedTime(widget.post.uploadedTime)}"),
+                  Text("Posted ${postedTime(post!.uploadedTime)}"),
                 ],
               ),
               Row(
@@ -242,8 +248,7 @@ class _SinglePostContainerState extends State<SinglePostContainer> {
                           onTap: () {
                             showModalBottomSheet(
                               context: context,
-                              builder: (context) =>
-                                  CommentPage(post: widget.post),
+                              builder: (context) => CommentPage(post: post!),
                             );
                           },
                           child: Text(
@@ -267,7 +272,7 @@ class _SinglePostContainerState extends State<SinglePostContainer> {
                     child: Row(
                       children: [
                         Text(
-                          widget.post.userName.toString(),
+                          post!.userName.toString(),
                           style: const TextStyle(
                               fontSize: 15,
                               color: Pallete.secondaryColor,
@@ -277,7 +282,7 @@ class _SinglePostContainerState extends State<SinglePostContainer> {
                           width: 2,
                         ),
                         Text(
-                          widget.post.postDescription.toString(),
+                          post!.postDescription.toString(),
                         ),
                       ],
                     ),

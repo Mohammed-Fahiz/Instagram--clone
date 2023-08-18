@@ -1,16 +1,14 @@
 import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:task1_app/core/constants/images/asset_images.dart';
-
 import 'Models/userModel.dart';
 import 'core/constants/Firebase/firebase_constants.dart';
 import 'core/constants/global-variables/global-variables.dart';
+import 'features/Home-insta/screens/clone_homepage.dart';
 import 'features/Login-Signup/Screens/loginPage.dart';
 import 'features/auth/controller/auth_controller.dart';
-import 'features/insta-clone-home/screens/clone_homepage.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -26,7 +24,7 @@ class _SplashScreenState extends State<SplashScreen> {
     if (preferences.getBool("userLoggedIn") != null) {
       setState(() {
         isLogged = preferences.getBool("userLoggedIn")!;
-        currentUserId = preferences.getString("userUid");
+        currentUserId = preferences.getString("userUid")!;
       });
       print(
           "==========================================================$currentUserId");
@@ -61,12 +59,15 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     isUserLoggedIn();
     navigateToPage();
-    // TODO: implement initState
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    deviceHeight = MediaQuery.of(context).size.height;
+    deviceWidth = MediaQuery.of(context).size.width;
+    double appBarHeightScale = deviceHeight / 88;
+    appBarHeight = deviceHeight * appBarHeightScale;
     return Scaffold(
       backgroundColor: Colors.black,
       body: Column(

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import 'package:task1_app/features/saved/Widgets/single_saved_post.dart';
+import 'package:task1_app/features/saved/repositories/saved_repositories.dart';
 
 import '../../../Models/mediaModel.dart';
 import '../../../Models/userModel.dart';
@@ -16,16 +17,6 @@ class SavedPage extends StatefulWidget {
 }
 
 class _SavedPageState extends State<SavedPage> {
-  Stream<List<MediaModel>> getSavedPosts(String postId) {
-    return FirebaseFirestore.instance
-        .collectionGroup(FirebaseConstants.mediaCollections)
-        .where("postId", isEqualTo: postId)
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => MediaModel.fromJson(doc.data()))
-            .toList());
-  }
-
   callBackFunction() {
     setState(() {});
   }
@@ -61,11 +52,11 @@ class _SavedPageState extends State<SavedPage> {
                   return Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: StreamBuilder(
-                        stream: getSavedPosts(postId),
+                        stream: SavedRepositories.getSavedPostsStream(postId),
                         builder: (context, snapshot) {
                           List<MediaModel>? savedPosts = snapshot.data;
                           return SingleSavedPost(
-                            savedPost: savedPosts!,
+                            savedPost: savedPosts![0],
                             callBackFunction: callBackFunction,
                           );
                         }),

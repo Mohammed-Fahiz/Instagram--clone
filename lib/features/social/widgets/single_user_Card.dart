@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:task1_app/features/social/repositories/social_repositories.dart';
 import '../../../Models/userModel.dart';
+import '../../../core/constants/global-variables/global-variables.dart';
 import '../../auth/controller/auth_controller.dart';
 
 class SingleUserCard extends StatefulWidget {
@@ -17,18 +19,40 @@ class SingleUserCard extends StatefulWidget {
 }
 
 class _SingleUserCardState extends State<SingleUserCard> {
+  UsersModel? user;
+  int? inx;
+  List? followList;
   bool isFollowed = false;
-  @override
-  void initState() {
+
+  followUnFollow() {
     setState(() {
-      if (widget.user.followersList.contains(currentUserId)) {
+      followList!.contains(currentUserId)
+          ? followList!.remove(currentUserId)
+          : followList!.add(currentUserId);
+      isFollowed == false ? isFollowed = true : isFollowed = false;
+    });
+    SocialRepositories.addFollowUnFollowToFirebase(
+        user: user!, followList: followList!);
+  }
+
+  checkIsFollowedInitState() {
+    setState(() {
+      if (user!.followersList.contains(currentUserId)) {
         isFollowed = true;
       } else {
         isFollowed = false;
       }
     });
+  }
 
-    // TODO: implement initState
+  @override
+  void initState() {
+    user = widget.user;
+    inx = widget.inx;
+    followList = widget.followList;
+
+    checkIsFollowedInitState();
+
     super.initState();
   }
 
@@ -40,7 +64,7 @@ class _SingleUserCardState extends State<SingleUserCard> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              "${widget.inx + 1}",
+              "${inx! + 1}",
               style: const TextStyle(fontSize: 20),
             ),
             const SizedBox(
@@ -48,23 +72,15 @@ class _SingleUserCardState extends State<SingleUserCard> {
             ),
             CircleAvatar(
               radius: 30,
-              backgroundImage: NetworkImage(widget.user.imageUrl.toString()),
+              backgroundImage: NetworkImage(user!.imageUrl.toString()),
             ),
           ],
         ),
-        title: Text(widget.user.userName.toString()),
-        subtitle: Text(widget.user.userEmail.toString()),
+        title: Text(user!.userName.toString()),
+        subtitle: Text(user!.userEmail.toString()),
         trailing: TextButton(
             onPressed: () {
-              setState(() {
-                widget.followList!.contains(currentUserId)
-                    ? widget.followList!.remove(currentUserId)
-                    : widget.followList!.add(currentUserId);
-                isFollowed == false ? isFollowed = true : isFollowed = false;
-              });
-              var updateFollow =
-                  widget.user.copyWith(followersList: widget.followList);
-              widget.user.ref!.update(updateFollow.toJson());
+              followUnFollow();
             },
             child: Text(isFollowed ? "Unfollow" : "Follow")),
       ),

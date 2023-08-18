@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:task1_app/features/profile/repositories/profile_repositories.dart';
 import '../../../Models/userModel.dart';
 import '../../../core/constants/Firebase/firebase_constants.dart';
 
@@ -12,27 +13,17 @@ class FollowersPage extends StatefulWidget {
 
 class _FollowersPageState extends State<FollowersPage> {
   List<UsersModel> followersList = [];
+  UsersModel? user;
 
-  Future<void> getFollowers() async {
-    for (var followerId in widget.user.followersList) {
-      FirebaseFirestore.instance
-          .collection(FirebaseConstants.userCollections)
-          .doc(followerId)
-          .snapshots()
-          .listen((snapshot) {
-        if (snapshot.exists) {
-          followersList.add(UsersModel.fromJson(snapshot.data()!));
-        }
-      });
-    }
-    setState(() {});
+  getFollowers() async {
+    followersList = await ProfileRepositories.getFollowers(
+        user: user!, followersList: followersList);
   }
 
   @override
   void initState() {
-    getFollowers();
-
-    // TODO: implement initState
+    user = widget.user;
+    followersList = getFollowers();
     super.initState();
   }
 
@@ -44,7 +35,7 @@ class _FollowersPageState extends State<FollowersPage> {
               child: CircularProgressIndicator(),
             )
           : ListView.builder(
-              itemCount: widget.user.followersList.length,
+              itemCount: user!.followersList.length,
               itemBuilder: (context, index) {
                 var follower = followersList[index];
                 return Card(

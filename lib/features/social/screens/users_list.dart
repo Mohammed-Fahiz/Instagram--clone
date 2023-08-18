@@ -7,7 +7,7 @@ import 'package:task1_app/features/profile/screens/profilePage.dart';
 import 'package:task1_app/features/social/widgets/single_user_Card.dart';
 import '../../../Models/userModel.dart';
 import '../../../core/constants/Firebase/firebase_constants.dart';
-import '../../auth/controller/auth_controller.dart';
+import '../../../core/constants/global-variables/global-variables.dart';
 
 class UsersList extends StatefulWidget {
   const UsersList({super.key});
@@ -19,7 +19,6 @@ class UsersList extends StatefulWidget {
 class _UsersListState extends State<UsersList> {
   bool iconVisibility = false;
   TextEditingController _search = TextEditingController();
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
   List<UsersModel> users = [];
   List<UsersModel> users1 = [];
   onSearch(String text) {
@@ -39,9 +38,8 @@ class _UsersListState extends State<UsersList> {
   }
 
   StreamSubscription? user;
-
+  //TODO getUser Function setState
   getUsers() async {
-    // await getCurrentUserListen(currentUserId);
     user = FirebaseFirestore.instance
         .collection(FirebaseConstants.userCollections)
         .snapshots()
@@ -70,10 +68,7 @@ class _UsersListState extends State<UsersList> {
 
   @override
   void initState() {
-    setState(() {
-      getUsers();
-    });
-
+    getUsers();
     _search = TextEditingController();
     // TODO: implement initState
     super.initState();

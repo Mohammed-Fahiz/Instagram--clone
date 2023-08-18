@@ -1,12 +1,9 @@
-import 'dart:io';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:task1_app/features/profile/screens/profilePage.dart';
+import 'package:task1_app/features/profile/repositories/profile_repositories.dart';
 import '../../../Models/userModel.dart';
 import '../../../core/constants/global-variables/global-variables.dart';
-import '../../social/screens/users_list.dart';
 import '../../auth/controller/auth_controller.dart';
 
 class ProfileEditPage extends StatefulWidget {
@@ -17,6 +14,13 @@ class ProfileEditPage extends StatefulWidget {
 }
 
 class _ProfileEditPageState extends State<ProfileEditPage> {
+  editUserProfile() async {
+    usersModel = await getUserData(currentUserId);
+    var updateDetails = usersModel!.copyWith(
+        userName: _userName.text, userPhoneNumber: _userPhoneNumber.text);
+    return updateDetails;
+  }
+
   void myAlert(BuildContext context) {
     showDialog(
         context: context,
@@ -76,29 +80,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     setState(() {
       image = img;
     });
-    uploadImage(image!);
-  }
-
-  uploadImage(XFile image) {
-    String url = "";
-    var ref = FirebaseStorage.instance
-        .ref()
-        .child('/images/imageName-${DateTime.now()}');
-    UploadTask uploadTask = ref.putFile(File(image.path));
-    uploadTask
-        .then((res) async => url = (await ref.getDownloadURL()).toString())
-        .then((value) async {
-      usersModel = await getUserData(currentUserId);
-      var updateData = usersModel!.copyWith(imageUrl: url);
-      usersModel!.ref!
-          .update(updateData.toJson())
-          .then((value) => Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ProfilePage(user: usersModel!),
-              ),
-              (route) => false));
-    });
+    ProfileRepositories.uploadImage(image!, context);
   }
 
   final _formKey = GlobalKey<FormState>();
@@ -247,22 +229,9 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                       onPressed: () async {
                         var isValidForm = _formKey.currentState!.validate();
                         if (isValidForm) {
-                          usersModel = await getUserData(currentUserId);
-                          var updateDetails = usersModel?.copyWith(
-                              userName: _userName.text,
-                              userPhoneNumber: _userPhoneNumber.text);
-                          usersModel!.ref!
-                              .update(updateDetails!.toJson())
-                              .then((value) {
-                            Navigator.pushAndRemoveUntil(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ProfilePage(
-                                    user: usersModel!,
-                                  ),
-                                ),
-                                (route) => false);
-                          });
+                          var updateDetails = await editUserProfile();
+                          ProfileRepositories.updateUserProfileToFirebase(
+                              updateDetails: updateDetails, context: context);
                         }
                       },
                       label: const Text("Submit"),

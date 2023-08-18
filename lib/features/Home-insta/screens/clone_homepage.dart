@@ -2,12 +2,12 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:task1_app/coming%20soon.dart';
-import 'package:task1_app/features/insta-clone-home/screens/feed_page.dart';
 import 'package:task1_app/features/post/screens/createPostPage.dart';
 import 'package:task1_app/features/profile/screens/profilePage.dart';
 import 'package:task1_app/features/social/screens/users_list.dart';
 import '../../../Models/userModel.dart';
 import '../../../core/constants/global-variables/global-variables.dart';
+import 'feed_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

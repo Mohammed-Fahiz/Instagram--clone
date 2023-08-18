@@ -2,12 +2,12 @@ import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:task1_app/features/insta-clone-home/screens/clone_homepage.dart';
+import 'package:task1_app/features/post/repositories/post_repository.dart';
 import '../../../Models/mediaModel.dart';
 import '../../../Models/userModel.dart';
 import '../../../core/constants/Firebase/firebase_constants.dart';
 import '../../../core/constants/global-variables/global-variables.dart';
-import '../../auth/controller/auth_controller.dart';
+import '../../Home-insta/screens/clone_homepage.dart';
 
 class CreatePostPage extends StatefulWidget {
   const CreatePostPage({super.key});
@@ -23,6 +23,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
   var postUrl;
   final TextEditingController _description = TextEditingController();
   final ImagePicker picker = ImagePicker();
+
+  //TODO getImage and Upload image setstate
+
   getImage(ImageSource media) async {
     var img = await picker.pickImage(
       source: media,
@@ -48,7 +51,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
     });
   }
 
-  addPostToFirebase() {
+  uploadPost() {
     var addPost = MediaModel(
       postDescription: _description.text,
       uploadedTime: DateTime.now(),
@@ -57,17 +60,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
       likesList: [],
       userName: usersModel!.userName,
     );
-    usersModel!.ref!
-        .collection(FirebaseConstants.mediaCollections)
-        .add(addPost.toJson())
-        .then((value) async {
-      mediaModel = await getMediaModel(value.id, usersModel!);
-      var updateData = mediaModel.copyWith(postRef: value, postId: value.id);
-      usersModel!.ref!
-          .collection(FirebaseConstants.mediaCollections)
-          .doc(value.id)
-          .update(updateData.toJson());
-    });
+    PostRepository.addPostToFirebase(addPost);
     Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
@@ -200,7 +193,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
             borderSide: BorderSide(color: Colors.black),
           ),
           onPressed: () {
-            isReadyToUpload ? addPostToFirebase() : notReadyToUpload();
+            isReadyToUpload ? uploadPost() : notReadyToUpload();
           },
           label: const Text(
             "Upload post",
@@ -209,18 +202,5 @@ class _CreatePostPageState extends State<CreatePostPage> {
         ),
       ],
     );
-  }
-}
-
-getMediaModel(String mediaDocId, UsersModel usersModel) async {
-  var snapshot = await usersModel.ref!
-      .collection(FirebaseConstants.mediaCollections)
-      .doc(mediaDocId)
-      .get();
-  if (snapshot.exists) {
-    final data = MediaModel.fromJson(snapshot.data()!);
-    return data;
-  } else {
-    return null;
   }
 }

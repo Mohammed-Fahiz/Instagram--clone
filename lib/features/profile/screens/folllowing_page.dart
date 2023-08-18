@@ -1,10 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:task1_app/core/constants/images/asset_images.dart';
+import 'package:task1_app/features/profile/repositories/profile_repositories.dart';
 
 import '../../../Models/userModel.dart';
 import '../../../core/constants/Firebase/firebase_constants.dart';
-import '../../auth/controller/auth_controller.dart';
+import '../../../core/constants/global-variables/global-variables.dart';
 
 class FollowingPage extends StatefulWidget {
   final Function callBackFunction;
@@ -20,28 +21,29 @@ class FollowingPage extends StatefulWidget {
 }
 
 class _FollowingPageState extends State<FollowingPage> {
-  Stream<List<UsersModel>> getFollowing() {
-    return FirebaseFirestore.instance
-        .collection(FirebaseConstants.userCollections)
-        .where('followers', arrayContains: widget.user.userId)
-        .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-              .map(
-                (doc) => UsersModel.fromJson(
-                  doc.data(),
-                ),
-              )
-              .toList(),
-        );
+  UsersModel? user;
+  int? followingLength;
+
+  unFollowFunction({required UsersModel followingUser}) {
+    setState(() {
+      followingUser.followersList.remove(currentUserId);
+    });
+    ProfileRepositories.updateFollowingToFirebase(followingUser);
+    widget.callBackFunction(followingLength);
   }
 
-  Color appBarBg = Colors.black;
+  @override
+  void initState() {
+    user = widget.user;
+    followingLength = widget.followingLength;
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: StreamBuilder(
-        stream: getFollowing(),
+        stream: ProfileRepositories.getFollowingStream(user!),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             var following = snapshot.data;
@@ -57,14 +59,14 @@ class _FollowingPageState extends State<FollowingPage> {
                                 AssetImage(AssetImageConstants.noFollowingImg),
                           ),
                         ),
-                        widget.user.userId == currentUserId
+                        user!.userId == currentUserId
                             ? const Text(
                                 "You are not following anyone!🗿",
                                 style: TextStyle(
                                     color: Colors.white, fontSize: 25),
                               )
                             : Text(
-                                "${widget.user.userName} are not following anyone!🗿",
+                                "${user!.userName} are not following anyone!🗿",
                                 style: const TextStyle(
                                     color: Colors.white, fontSize: 25),
                               ),
@@ -84,23 +86,11 @@ class _FollowingPageState extends State<FollowingPage> {
                             following[index].userName.toString(),
                           ),
                           subtitle: Text(following[index].userEmail.toString()),
-                          trailing: widget.user.userId == currentUserId
+                          trailing: user!.userId == currentUserId
                               ? TextButton(
                                   onPressed: () {
-                                    setState(() {
-                                      following[index]
-                                          .followersList
-                                          .remove(currentUserId);
-                                      var updateFollowing = following[index]
-                                          .copyWith(
-                                              followersList: following[index]
-                                                  .followersList);
-                                      following[index]
-                                          .ref!
-                                          .update(updateFollowing.toJson());
-                                      widget.callBackFunction(
-                                          widget.followingLength);
-                                    });
+                                    unFollowFunction(
+                                        followingUser: following[index]);
                                   },
                                   child: const Text("Unfollow"))
                               : null,

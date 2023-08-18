@@ -5,6 +5,5 @@ class AssetImageConstants {
   static const storyCircle = "images/insta story.png";
   static const googleLogo = "images/googlelogo.png";
   static const splashScreenGif = "images/batmobile.gif";
-
   static const dummyImg = "images/batman.jpg";
 }

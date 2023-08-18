@@ -1,9 +1,0 @@
-<svg width="186" height="44" viewBox="0 0 186 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="Grid Tab">
-<rect id="Rectangle" width="186" height="44" fill="white" fill-opacity="0.01"/>
-<path id="Line 2" d="M0.5 43.5H185.5" stroke="#262626" stroke-linecap="square"/>
-<g id="Grid Icon">
-<path id="Shape" fill-rule="evenodd" clip-rule="evenodd" d="M82 33.5H104.5V11H82V33.5ZM89 32H83.5V26.5H89V32ZM96 26.5H90.5V32H96V26.5ZM97.5 26.5H103V32H97.5V26.5ZM89 19.5H83.5V25H89V19.5ZM90.5 19.5H96V25H90.5V19.5ZM103 19.5H97.5V25H103V19.5ZM103 12.5V18H97.5V12.5H103ZM89 12.5H83.5V18H89V12.5ZM90.5 12.5H96V18H90.5V12.5Z" fill="#262626"/>
-</g>
-</g>
-</svg>

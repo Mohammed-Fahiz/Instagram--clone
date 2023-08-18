@@ -39,7 +39,7 @@ class UsersModel {
         ? DateTime.now()
         : json["lastLogged"].toDate();
     imageUrl = json["dp"] ?? '';
-    userId = json["uid"];
+    userId = json["uid"] ?? "";
     ref = json["ref"];
     followersList = json["followers"] ?? [];
     saved = json["saved"] ?? [];

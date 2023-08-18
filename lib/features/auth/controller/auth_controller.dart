@@ -3,13 +3,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:task1_app/features/insta-clone-home/screens/clone_homepage.dart';
 import '../../../Models/userModel.dart';
 import '../../../core/constants/Firebase/firebase_constants.dart';
+import '../../../core/constants/global-variables/global-variables.dart';
+import '../../Home-insta/screens/clone_homepage.dart';
 import '../../Login-Signup/Screens/loginPage.dart';
 import '../../Login-Signup/Screens/signUpPage.dart';
 
-var currentUserId;
 // getCurrentUserListen(String currentUserId) {
 //   print(currentUserId);
 //   FirebaseFirestore.instance

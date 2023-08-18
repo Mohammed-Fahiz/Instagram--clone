@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:task1_app/features/post/repositories/post_repository.dart';
 import 'package:task1_app/features/post/widgets/singleComment.dart';
 import '../../../Models/commentModel.dart';
 import '../../../Models/mediaModel.dart';
@@ -16,24 +17,31 @@ class CommentPage extends StatefulWidget {
 }
 
 class _CommentPageState extends State<CommentPage> {
+  MediaModel? post;
   final TextEditingController _comment = TextEditingController();
 
-  Stream<List<CommentModel>> getPostComments() {
-    return widget.post.postRef!
-        .collection(FirebaseConstants.commentCollections)
-        .orderBy("createdTime", descending: true)
-        .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-              .map(
-                (doc) => CommentModel.fromJson(doc.data()),
-              )
-              .toList(),
-        );
+  callBackFunction() {
+    if (mounted) {
+      setState(() {});
+    }
   }
 
-  callBackFunction() {
-    setState(() {});
+  addComment() async {
+    var commentData = CommentModel(
+        commentOwnerId: usersModel!.userId,
+        commentContent: _comment.text,
+        commentedTime: DateTime.now(),
+        commentOwnerDp: usersModel!.imageUrl,
+        commentOwnerName: usersModel!.userName);
+
+    await PostRepository.addCommentToFirebase(
+        commentData: commentData, post: post!);
+  }
+
+  @override
+  void initState() {
+    post = widget.post;
+    super.initState();
   }
 
   @override
@@ -47,7 +55,7 @@ class _CommentPageState extends State<CommentPage> {
         ),
         Expanded(
           child: StreamBuilder(
-              stream: getPostComments(),
+              stream: PostRepository.getPostCommentsStream(post!),
               builder: (context, snapshot) {
                 var postComments = snapshot.data ?? [];
                 return postComments == []
@@ -58,15 +66,17 @@ class _CommentPageState extends State<CommentPage> {
                               fontWeight: FontWeight.bold, fontSize: 18),
                         ),
                       )
-                    : ListView.builder(
-                        itemBuilder: (context, index) {
-                          return SingleComment(
-                            postComment: postComments[index],
-                            post: widget.post,
-                            callBackFunction: callBackFunction,
-                          );
-                        },
-                        itemCount: postComments.length,
+                    : SizedBox(
+                        child: ListView.builder(
+                          itemBuilder: (context, index) {
+                            return SingleComment(
+                              postComment: postComments[index],
+                              post: post!,
+                              callBackFunction: callBackFunction,
+                            );
+                          },
+                          itemCount: postComments.length,
+                        ),
                       );
               }),
         ),
@@ -91,24 +101,7 @@ class _CommentPageState extends State<CommentPage> {
               ),
               suffixIcon: IconButton(
                 onPressed: () {
-                  var commentData = CommentModel(
-                      commentOwnerId: usersModel!.userId,
-                      commentContent: _comment.text,
-                      commentedTime: DateTime.now(),
-                      commentOwnerDp: usersModel!.imageUrl,
-                      commentOwnerName: usersModel!.userName);
-
-                  widget.post.postRef!
-                      .collection(FirebaseConstants.commentCollections)
-                      .add(commentData.toJson())
-                      .then((value) {
-                    var updateCommentData = commentData.copyWith(
-                        commentRef: value, commentId: value.id);
-                    widget.post.postRef!
-                        .collection(FirebaseConstants.commentCollections)
-                        .doc(value.id)
-                        .update(updateCommentData.toJson());
-                  });
+                  addComment();
                 },
                 icon: const Icon(
                   FontAwesomeIcons.paperPlane,

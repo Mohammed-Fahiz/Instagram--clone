@@ -1,12 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-
-
+import 'package:task1_app/features/profile/repositories/profile_repositories.dart';
 import '../../../Models/mediaModel.dart';
 import '../../../Models/userModel.dart';
 import '../../../core/constants/Firebase/firebase_constants.dart';
 import '../../../core/constants/global-variables/global-variables.dart';
-import '../../auth/controller/auth_controller.dart';
 
 class UserPostPage extends StatefulWidget {
   final UsersModel user;
@@ -17,14 +15,13 @@ class UserPostPage extends StatefulWidget {
 }
 
 class _UserPostPageState extends State<UserPostPage> {
+  UsersModel? user;
   final TextEditingController _editDescription = TextEditingController();
-  Stream<List<MediaModel>> getCurrentUserPosts() {
-    return widget.user.ref!
-        .collection(FirebaseConstants.mediaCollections)
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => MediaModel.fromJson(doc.data()))
-            .toList());
+
+  @override
+  void initState() {
+    user = widget.user;
+    super.initState();
   }
 
   @override
@@ -33,7 +30,7 @@ class _UserPostPageState extends State<UserPostPage> {
       height: deviceHeight * .55,
       width: deviceWidth,
       child: StreamBuilder(
-          stream: getCurrentUserPosts(),
+          stream: ProfileRepositories.getCurrentUserPostsStream(user!),
           builder: (context, snapshot) {
             if (snapshot.hasData) {
               var userPosts = snapshot.data;
@@ -75,7 +72,7 @@ class _UserPostPageState extends State<UserPostPage> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceAround,
                                   children: [
-                                    widget.user.userId == currentUserId
+                                    user!.userId == currentUserId
                                         ? FloatingActionButton.extended(
                                             elevation: 0,
                                             backgroundColor:
@@ -86,42 +83,27 @@ class _UserPostPageState extends State<UserPostPage> {
                                                 context: context,
                                                 builder: (context) =>
                                                     AlertDialog(
-                                                  content: Container(
-                                                    child: TextFormField(
-                                                      controller:
-                                                          _editDescription,
-                                                      decoration: InputDecoration(
-                                                          hintText: userPosts[
-                                                                  index]
-                                                              .postDescription),
-                                                    ),
+                                                  content: TextFormField(
+                                                    controller:
+                                                        _editDescription,
+                                                    decoration: InputDecoration(
+                                                        hintText: userPosts[
+                                                                index]
+                                                            .postDescription),
                                                   ),
                                                   actions: [
                                                     FloatingActionButton
                                                         .extended(
                                                       elevation: 0,
                                                       onPressed: () {
-                                                        var editPost = userPosts[
-                                                                index]
-                                                            .copyWith(
-                                                                postDescription:
-                                                                    _editDescription
-                                                                        .text);
-                                                        userPosts[index]
-                                                            .postRef!
-                                                            .update(editPost
-                                                                .toJson())
-                                                            .then((value) {
-                                                          Navigator.pop(
-                                                              context);
-                                                          const snackBar = SnackBar(
-                                                              content: Text(
-                                                                  "Edit successfull"));
-                                                          ScaffoldMessenger.of(
-                                                                  context)
-                                                              .showSnackBar(
-                                                                  snackBar);
-                                                        });
+                                                        ProfileRepositories
+                                                            .editUserPost(
+                                                                post: userPosts[
+                                                                    index],
+                                                                context:
+                                                                    context,
+                                                                editDescription:
+                                                                    _editDescription);
                                                       },
                                                       label: const Text(
                                                           "Save edits"),
@@ -133,24 +115,17 @@ class _UserPostPageState extends State<UserPostPage> {
                                             label: const Text("Edit post"),
                                           )
                                         : const SizedBox(),
-                                    widget.user.userId == currentUserId
+                                    user!.userId == currentUserId
                                         ? FloatingActionButton.extended(
                                             backgroundColor:
                                                 const Color.fromRGBO(
                                                     92, 75, 153, 1),
                                             elevation: 0,
                                             onPressed: () {
-                                              userPosts[index]
-                                                  .postRef!
-                                                  .delete()
-                                                  .then((value) {
-                                                Navigator.pop(context);
-                                                const snackBar = SnackBar(
-                                                    content:
-                                                        Text("Post deleted"));
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(snackBar);
-                                              });
+                                              ProfileRepositories
+                                                  .deletePostFromFirebase(
+                                                      userPosts[index],
+                                                      context);
                                             },
                                             label: const Text("Delete post"),
                                           )

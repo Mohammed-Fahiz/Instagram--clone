@@ -5,7 +5,7 @@ class Pallete {
   static const secondaryColor = Color.fromRGBO(38, 38, 38, 1);
   static const darkModeColor = Colors.black;
 
-  //light mod
+  //light mode
   static var lightModeAppTheme = ThemeData.light().copyWith(
     scaffoldBackgroundColor: primaryColor,
     cardColor: primaryColor,

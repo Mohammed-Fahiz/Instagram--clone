@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:task1_app/features/post/repositories/post_repository.dart';
 import '../../../Models/commentModel.dart';
 import '../../../Models/mediaModel.dart';
 import '../../../Models/userModel.dart';
@@ -21,8 +22,13 @@ class SingleComment extends StatefulWidget {
 }
 
 class _SingleCommentState extends State<SingleComment> {
+  MediaModel? post;
+  CommentModel? postComment;
+  Function? callBackFunction;
+
   bool isDeletable = false;
 
+  //TODO commented time Function
   commentedTime(commentedTime) {
     DateTime now = DateTime.now();
     Duration difference = now.difference(commentedTime);
@@ -39,20 +45,32 @@ class _SingleCommentState extends State<SingleComment> {
     }
   }
 
+  isCommentDeletable() {
+    setState(() {
+      postComment!.commentOwnerId == usersModel!.userId ||
+              post!.userId == usersModel!.userId
+          ? isDeletable = true
+          : isDeletable = false;
+    });
+  }
+
+  @override
+  void initState() {
+    post = widget.post;
+    postComment = widget.postComment;
+    callBackFunction = widget.callBackFunction;
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onLongPress: () {
-        setState(() {
-          widget.postComment.commentOwnerId == usersModel!.userId ||
-                  widget.post.userId == usersModel!.userId
-              ? isDeletable = true
-              : isDeletable = false;
-        });
+        isCommentDeletable();
       },
       child: ListTile(
         leading: CachedNetworkImage(
-          imageUrl: widget.postComment.commentOwnerDp.toString(),
+          imageUrl: postComment!.commentOwnerDp.toString(),
           imageBuilder: (context, imageProvider) {
             return CircleAvatar(
               backgroundImage: imageProvider,
@@ -63,22 +81,21 @@ class _SingleCommentState extends State<SingleComment> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              widget.postComment.commentOwnerName.toString(),
+              postComment!.commentOwnerName.toString(),
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-            Text(widget.postComment.commentContent.toString()),
+            Text(postComment!.commentContent.toString()),
             Text(
-              commentedTime(widget.postComment.commentedTime),
+              commentedTime(postComment!.commentedTime),
             ),
           ],
         ),
         trailing: isDeletable
             ? IconButton(
-                onPressed: () {
-                  widget.post.postRef!
-                      .collection(FirebaseConstants.commentCollections)
-                      .doc(widget.postComment.commentId)
-                      .delete();
+                onPressed: () async {
+                  await PostRepository.deleteCommentFromFirebase(
+                      post!, postComment!);
+                  callBackFunction!();
                   setState(() {
                     isDeletable = false;
                   });

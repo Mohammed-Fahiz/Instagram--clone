@@ -25,11 +25,15 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  UsersModel? user;
+
   int followingLength = 0;
+
+  //TODO getFollowing length setState
   getFollowingLength() async {
     var query = FirebaseFirestore.instance
         .collection(FirebaseConstants.userCollections)
-        .where('followers', arrayContains: widget.user.userId);
+        .where('followers', arrayContains: user!.userId);
     AggregateQuerySnapshot queryLength = await query.count().get();
     followingLength = queryLength.count;
     if (mounted) {
@@ -43,8 +47,24 @@ class _ProfilePageState extends State<ProfilePage> {
     });
   }
 
+  showDialogFunction() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        content: Center(
+          child: Image(
+            image: NetworkImage(user!.imageUrl.toString()),
+            fit: BoxFit.fill,
+          ),
+        ),
+        backgroundColor: Colors.white,
+      ),
+    );
+  }
+
   @override
   void initState() {
+    user = widget.user;
     getFollowingLength();
     // TODO: implement initState
     super.initState();
@@ -56,7 +76,7 @@ class _ProfilePageState extends State<ProfilePage> {
       appBar: AppBar(
           centerTitle: true,
           actions: [
-            widget.user.userId == currentUserId
+            user!.userId == currentUserId
                 ? IconButton(
                     onPressed: () {
                       showModalBottomSheet(
@@ -77,7 +97,7 @@ class _ProfilePageState extends State<ProfilePage> {
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(widget.user.userName.toString()),
+              Text(user!.userName.toString()),
               const SizedBox(
                 width: 2,
               ),
@@ -100,26 +120,14 @@ class _ProfilePageState extends State<ProfilePage> {
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       CachedNetworkImage(
-                        imageUrl: widget.user.imageUrl,
+                        imageUrl: user!.imageUrl,
                         imageBuilder: (context, imageProvider) => CircleAvatar(
                           radius: (46 / deviceWidth) * deviceWidth,
                           backgroundImage:
                               const AssetImage(AssetImageConstants.storyCircle),
                           child: GestureDetector(
                             onTap: () {
-                              showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  content: Center(
-                                    child: Image(
-                                      image: NetworkImage(
-                                          widget.user.imageUrl.toString()),
-                                      fit: BoxFit.fill,
-                                    ),
-                                  ),
-                                  backgroundColor: Colors.white,
-                                ),
-                              );
+                              showDialogFunction();
                             },
                             child: CircleAvatar(
                               backgroundImage: imageProvider,
@@ -151,7 +159,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => FollowersPage(
-                                      user: widget.user,
+                                      user: user!,
                                     ),
                                   ),
                                 );
@@ -159,7 +167,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               child: Column(
                                 children: [
                                   Text(
-                                    widget.user.followersList.length.toString(),
+                                    user!.followersList.length.toString(),
                                     style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 15),
@@ -176,7 +184,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                     builder: (context) => FollowingPage(
                                       callBackFunction: callBackFunction,
                                       followingLength: followingLength,
-                                      user: widget.user,
+                                      user: user!,
                                     ),
                                   ),
                                 );
@@ -204,7 +212,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         width: 5,
                       ),
                       Text(
-                        widget.user.userName,
+                        user!.userName,
                         style: const TextStyle(
                             fontSize: 16, fontWeight: FontWeight.bold),
                       ),
@@ -215,7 +223,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       const SizedBox(
                         width: 5,
                       ),
-                      Text(widget.user.userEmail),
+                      Text(user!.userEmail),
                     ],
                   ),
                   Row(
@@ -223,10 +231,10 @@ class _ProfilePageState extends State<ProfilePage> {
                       const SizedBox(
                         width: 5,
                       ),
-                      Text(widget.user.userPhoneNumber),
+                      Text(user!.userPhoneNumber),
                     ],
                   ),
-                  widget.user.userId == currentUserId
+                  user!.userId == currentUserId
                       ? GestureDetector(
                           onTap: () {
                             Navigator.push(
@@ -334,7 +342,7 @@ class _ProfilePageState extends State<ProfilePage> {
               child: TabBarView(
                 children: [
                   UserPostPage(
-                    user: widget.user,
+                    user: user!,
                   ),
                   const CommingSoonPage(),
                 ],
